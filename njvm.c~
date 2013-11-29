@@ -1,0 +1,225 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define IMMEDIATE(x) ((x) & 0x00FFFFFFF)
+#define SIGN_EXTEND(i) ((i) & 0x00800000 ? (i) | 0xFF000000 : (i))
+
+#define HALT 		0
+
+#define PUSHC 		1
+#define PUSHG		11
+#define POPG		12
+
+#define ADD 		2
+#define SUB		3
+#define MUL		4
+#define DIV		5
+#define	MOD		6
+
+#define RDINT		7
+#define WRINT		8
+#define RDCHR		9
+#define WRCHR		10
+
+int a, b, d;
+int count; /*Programmzähler*/
+unsigned int stackP; /* Stack pointer*/
+int stack[100];
+unsigned int op;
+int immediateV;
+FILE *stream;
+int fsize;
+void *filePointer;
+
+void listProg();
+void execProg();
+
+int pop() {
+	stackP--;
+	if (stackP < 0) {
+		printf("Stack Unterlauf!\nNJVM wird beendet\n");
+		exit(0);
+
+	}
+	return stack[stackP];
+}
+
+/****************************************************************************************************/
+/*Funktion legt einen Wert auf den Stack*/
+void pushc(int wert) {
+	if (stackP >= 100) {
+		printf("Stack Ueberlauf!\nNJVM wird beendet\n");
+		exit(0);
+	}
+	stack[stackP] = wert;
+	stackP++;
+}
+
+int main(int argc,char *argv[]){
+	if (argc >1){
+		if (strcmp(argv[1],"--version") == 0){
+			printf("Version 1.0\n");
+			return 0;
+		}
+		if (strcmp(argv[1],"--help") == 0){
+		  printf("--version	show version and exit\n");
+		  printf("--help		show help and exit\n");
+		  return 0;
+		}
+		if ((strcmp(argv[1],"--help") == 1) && (strcmp(argv[1],"--version") == 1)){
+		    printf("Ninja VM started\n");
+		    stream = fopen(argv[1],"r");
+		    int progMem[22];
+		    if (stream == NULL){
+			perror("Fehler beim öffnen!");
+			exit(EXIT_FAILURE);
+		    } else {
+			fread(&progMem,4,22,stream);
+			listProg(sizeof(progMem) / sizeof(int),progMem);
+			execProg(sizeof(progMem) / sizeof(int),progMem);
+		    }
+		}
+	}
+
+
+
+return 0;
+}
+
+void listProg(int x, int prog_mem[]){
+	count = 3;
+
+	while (count < x){
+
+		op = (prog_mem[count] & 0xFF000000) >> 24;
+		immediateV = SIGN_EXTEND(prog_mem[count] & 0x00FFFFFF);		
+			
+		if (op == HALT){
+			printf("%03i:\thalt\n",count);
+		}
+		if (op == PUSHC){
+			printf("%03i:\tpushc\t%i\n", count, immediateV);
+		}
+		if (op == POPG){
+			printf("%03i:\tpushg\t%i\n", count, immediateV);
+		}
+		if (op == ADD){
+			printf("%03i:\tadd\n",count);
+		}
+		if (op == SUB){
+			printf("%03i:\tsub\n",count);
+		}
+		if (op == MUL){
+			printf("%03i:\tmul\n",count);
+		}
+		if (op == DIV){
+			printf("%03i:\tdiv\n",count);
+		}
+		if (op == MOD){
+			printf("%03i:\tmod\n",count);
+		}
+		if (op == RDCHR){
+			printf("%03i:\tRDCHR\n",count);
+		}
+		if (op == WRCHR){
+			printf("%03i:\tWRCHR\n",count);
+		}
+		if (op == RDINT){
+			printf("%03i:\tRDINT\n",count);
+		}
+		if (op == WRINT){
+			printf("%03i:\tWRINT\n",count);
+		}
+		count++;
+	}
+}
+
+void execProg(int x,int prog_mem[]){
+	char c;
+	count = 0;
+	stackP = 0;
+
+	while (count < x){
+	
+		op = (prog_mem[count] & 0xFF000000) >> 24;
+		immediateV = SIGN_EXTEND(prog_mem[count] & 0x00FFFFFF);
+		
+		if (op == HALT){
+			printf("Ninja VM stopped\n");
+			exit(0);
+		}
+		if (op == PUSHC){
+			printf("pctest");
+			pushc(immediateV);
+		}
+		if (op == PUSHG) {
+			pushc(immediateV);
+		}
+		if (op == WRCHR){
+			printf("%c", pop());
+		}
+		if (op == ADD){
+			b = pop();
+			a = pop();
+			d = a+b;
+			pushc(d);
+		}
+		if (op == SUB){
+			b = pop();
+			a = pop();
+			d = a-b;
+			pushc(d);
+		}
+		if (op == MUL){
+			b = pop();
+			a = pop();
+			d = a*b;
+			pushc(d);
+		}
+		if (op == DIV){
+			b = pop();
+			a = pop();	
+			d = a/b;
+			pushc(d);
+		}
+		if (op == MOD){
+			b = pop();
+			a = pop();
+			if (b == 0) {
+				printf("Modulorechnung durch 0 nicht erlaubt!\n");
+				exit(0);
+			}
+			d = a%b;
+			pushc(d);
+	
+		}
+		if (op == RDCHR){
+			if (scanf("%c", &c) == 0) {
+				printf(
+						"Unerwartete Eingabe.\n Program wird beendet\n");
+				exit(0);
+			}
+			getchar();
+			pushc(c);
+			printf("rdtest");
+		}
+		if (op == WRCHR){
+			printf("%c", pop());
+		}
+		if (op == RDINT){
+			if (scanf("%i", &a) == 0) {
+				printf(
+						"Unerwartete Eingabe.\nProgram wird beendet\n");
+				exit(0);
+			}
+			getchar();
+			pushc(a);
+		}
+		if (op == WRINT){
+			d= pop();
+			printf("%i", d);
+		}
+		count++;
+	}
+}

@@ -1,0 +1,90 @@
+<HTML>
+
+  <HEAD>
+    <TITLE> KSP Aufgabe 1 </TITLE>
+  </HEAD>
+
+
+  <BODY BGCOLOR="#ffffff" LINK="#008000" ALINK="#008000" VLINK="#fb8000">
+    <H1> KSP Aufgabe 1 </H1>
+    Konstruieren Sie die Ninja-VM Version 1, die die hier gelisteten
+    <A HREF="instrs"> Instruktionen </A> ausfuehren kann.
+    Jede Instruktion eines Programms wird in einem "unsigned int"
+    gespeichert, wobei der Opcode (die Zahl, die in der Tabelle hinter
+    jeder Instruktion steht) in den obersten 8 Bits des "unsigned int"
+    abgelegt wird. Die restlichen 24 Bits dienen zur Aufnahme eines
+    Immediate-Wertes. Der wird im Augenblick nur bei der Instruktion
+    "pushc" benoetigt, wo er den auf den Stack zu legenden Wert darstellt.
+    <BR> <BR>
+    Den Effekt einer jeden Instruktion auf den Stack listet diese
+    <A HREF="stack"> Tabelle </A>. Drei Punkte "..." in der Tabelle
+    stehen jeweils fuer den durch die Instruktion nicht veraenderten
+    Stackinhalt. Die Operanden fuer arithmetische Operationen sind
+    immer ganze Zahlen, genauso wie die bei "rdint" und "rdchr"
+    eingelesenen bzw. bei "wrint" und "wrchr" ausgegebenen Werte.
+    <BR> <BR>
+    Die drei hier gelisteten <A HREF="progs"> Programme </A> sollen
+    fest in die VM einprogrammiert werden. Der Benutzer kann durch
+    Eingabe eines Kommandozeilenargumentes beim Aufruf der VM eines
+    der Programme auswaehlen, das dann in den Programmspeicher der
+    VM kopiert wird. Nach dem Anlaufen der VM wird das Programm erst
+    in einer lesbaren Form aufgelistet; eine moegliche Darstellung
+    koennen Sie der Referenzimplementierung entnehmen. Anschliessend
+    wird es ausgefuehrt. Beachten Sie bitte, dass "Auflisten" und
+    "Ausfuehren" zwei getrennte Aktionen auf dem Programm sind, die
+    strikt hintereinander passieren sollen.
+    <BR> <BR>
+    Hier ist wieder die Referenzimplementierung:
+    <BR>
+    <A HREF="njvm"> njvm </A>
+    <BR>
+    <H2> Hinweise </H2>
+    1. Die Compilerschalter sind wie in Aufgabe 0 zu setzen.
+    <BR> <BR>
+    2. Ihre VM benoetigt einen Programmspeicher und einen Stack.
+    Beide koennen Sie global definieren, damit Sie von ueberall
+    darauf zugreifen koennen.
+    <BR> <BR>
+    3. Ihre VM wird zwei Interpreter fuer den Programmcode beinhalten:
+    einen fuer das Listen des Programms und einen fuer die eigentliche
+    Ausfuehrung. Beide sind strukturell gleich aufgebaut: eine Schleife
+    (worueber?) und darin eine Mehrfachverzweigung (wozu?). Beginnen Sie
+    mit dem Programmlister - wenn Sie den haben, ist der Interpretierer
+    fuer die Ausfuehrung nicht mehr schwer. Beachten Sie aber die zwei
+    unterschiedlichen Abbruchkriterien in den beiden Interpretierern
+    (welche?).
+    <BR> <BR>
+    4. Ihr Programm darf unter keinen Umstaenden abstuerzen!
+    Natuerlich gibt es Fehlersituationen, in denen Sie das Programm
+    nicht vernuenftig weiterlaufen lassen koennen - dann geben Sie
+    eine verstaendliche Fehlermeldung aus und beenden das Programm.
+    Eine solche Situation betrifft beispielsweise das Teilen durch 0,
+    eine andere den Stack-Ueberlauf bzw. -Unterlauf (wann koennen
+    diese beiden Fehler auftreten?).
+    <BR> <BR>
+    5. Sie koennen den C-Praeprozessor verwenden, um eine lesbare
+    Codierung der beiden kleinen Programme zu ermoeglichen.
+    Beispielsweise koennte der Anfang des ersten Programms im
+    C-Quelltext lauten:
+    <BR>
+    unsigned int code1[] = { <BR>
+      (PUSHC << 24) | IMMEDIATE(3), <BR>
+      (PUSHC << 24) | IMMEDIATE(4), <BR>
+      (ADD   << 24), <BR>
+    ... <BR>
+    mit den entsprechenden Definitionen fuer die Opcodes, z.B. <BR>
+    #define ADD 2 <BR>
+    und fuer das Kodieren des Immediate-Wertes <BR>
+    #define IMMEDIATE(x) ((x) & 0x00FFFFFF) <BR>
+    <BR>
+    6. Der Immediate-Wert kann auch negativ sein. Vielleicht haben Sie
+    Verwendung fuer diesen Makro: <BR>
+    #define SIGN_EXTEND(i)  ((i) & 0x00800000 ? (i) | 0xFF000000 : (i)) <BR>
+    Was macht der eigentlich? Und wie genau funktioniert er?
+    <BR> <BR>
+    7. ACHTUNG: Es ist unbedingt erforderlich, die Makros aus 5. und 6.
+    genau zu verstehen! Machen Sie sich die Wirkungsweise an Beispielen
+    klar und rechnen Sie damit, im Praktikum dazu befragt zu werden!
+  </BODY>
+
+</HTML>
